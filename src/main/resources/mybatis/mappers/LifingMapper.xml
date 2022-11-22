@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sorhive.batchserver.lifing.query.LifingMapper">
+    <resultMap id="lifingResultMap" type="com.sorhive.batchserver.lifing.query.dto.LifingSummary">
+        <id property="lifingId" column="lifing_id"/>
+        <result property="lifingWriterCode" column="lifing_writer_code"/>
+        <result property="createTime" column="lifing_create_time"/>
+        <result property="deleteYn" column="lifing_delete_yn"/>
+    </resultMap>
+    <select id="findAllLifing" resultMap="lifingResultMap">
+        select
+               lifing_id
+             , lifing_writer_code
+          from tbl_lifings
+         where lifing_create_time between date_sub(now(), interval 60 minute) and now()
+           and lifing_delete_yn = 'N';
+    </select>
+</mapper>

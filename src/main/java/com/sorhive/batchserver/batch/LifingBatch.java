@@ -1,5 +1,7 @@
 package com.sorhive.batchserver.batch;
 
+import com.sorhive.batchserver.lifing.command.domain.model.Lifing;
+import com.sorhive.batchserver.lifing.command.domain.repository.LifingRepository;
 import com.sorhive.batchserver.lifing.query.LifingQueryService;
 import com.sorhive.batchserver.lifing.query.dto.LifingSummary;
 import com.sorhive.batchserver.member.command.domain.model.member.Member;
@@ -28,6 +30,7 @@ import java.util.Optional;
  * DATE             AUTHOR           NOTE
  * ----------------------------------------------------------------
  * 2022-11-22       부시연           최초 생성
+ * 2022-12-05       부시연           라이핑 24시간 지난 여부 추가
  * </pre>
  *
  * @author 부시연(최초 작성자)
@@ -39,13 +42,15 @@ public class LifingBatch {
     private static final Logger log = LoggerFactory.getLogger(LifingBatch.class);
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
+    private final LifingRepository lifingRepository;
     private final LifingQueryService lifingQueryService;
     private final MemberRepository memberRepository;
     private List<LifingSummary> lifingSummaries;
 
-    public LifingBatch(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory, LifingQueryService lifingQueryService, MemberRepository memberRepository) {
+    public LifingBatch(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory, LifingRepository lifingRepository, LifingQueryService lifingQueryService, MemberRepository memberRepository) {
         this.jobBuilderFactory = jobBuilderFactory;
         this.stepBuilderFactory = stepBuilderFactory;
+        this.lifingRepository = lifingRepository;
         this.lifingQueryService = lifingQueryService;
         this.memberRepository = memberRepository;
     }
@@ -93,6 +98,14 @@ public class LifingBatch {
                     log.info("[lifingStep2] 라이핑 데이터를 통하여 회원들의 lifing_yn 을 N으로 변경 ");
 
                     for (int i = 0; i < lifingSummaries.size(); i++) {
+
+                        Optional<Lifing> lifingData = lifingRepository.findByLifingId(lifingSummaries.get(i).getLifingId());
+                        Lifing lifing = lifingData.get();
+
+                        lifing.changeLifingDayYn();
+
+                        lifingRepository.save(lifing);
+
                         Optional<Member> memberData = memberRepository.findByMemberCode(lifingSummaries.get(i).getLifingWriterCode());
                         Member member = memberData.get();
 
